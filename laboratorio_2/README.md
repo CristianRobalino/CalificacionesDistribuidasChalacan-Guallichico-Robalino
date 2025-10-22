@@ -1,139 +1,98 @@
 # Sistema de Gestión de Calificaciones - Laboratorio 2
 
-## Descripción del Proyecto
+## Descripción General del Proyecto
 
-Sistema distribuido cliente-servidor para la gestión de calificaciones estudiantiles. El proyecto implementa un servidor TCP que procesa solicitudes de clientes para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre un archivo CSV compartido que almacena las calificaciones.
+Sistema distribuido cliente-servidor para la gestión de calificaciones estudiantiles con validación de materias mediante un servicio externo de NRCs (Número de Referencia de Curso). El proyecto implementa dos arquitecturas:
 
-## Arquitectura del Sistema
+### Componentes del Sistema
 
-### Modelo Cliente-Servidor
+#### 1. Servidor de Calificaciones
+Servidor TCP que procesa solicitudes de clientes para realizar operaciones CRUD (Crear, Leer, Actualizar, Eliminar) sobre calificaciones estudiantiles almacenadas en un archivo CSV compartido.
 
-El sistema sigue una arquitectura cliente-servidor con las siguientes características:
-
-- **Protocolo de Comunicación**: TCP/IP (Sockets)
+**Características:**
 - **Puerto**: 12345
-- **Host**: localhost
-- **Formato de Datos**: JSON para respuestas, comandos delimitados por `|` para peticiones
-- **Persistencia**: Archivo CSV compartido (`calificaciones.csv`) en el directorio raíz del laboratorio
+- **Protocolo**: TCP/IP con sockets
+- **Persistencia**: `calificaciones.csv` (compartido)
+- **Formato de comunicación**: Comandos delimitados por `|`, respuestas en JSON
 
-## Estructura del Proyecto
+**Implementaciones disponibles:**
+- **sin_hilos/**: Servidor secuencial (atiende un cliente a la vez)
+- **con_hilos/**: Servidor concurrente con threading (atiende múltiples clientes simultáneamente)
+
+#### 2. Cliente de Calificaciones
+Aplicación interactiva con menú que permite a los usuarios realizar operaciones sobre las calificaciones conectándose al servidor de calificaciones.
+
+**Funcionalidades:**
+- Agregar calificación (con validación de NRC en versión con hilos)
+- Buscar estudiante por ID
+- Actualizar calificación
+- Listar todas las calificaciones
+- Eliminar registro por ID
+
+#### 3. Servidor NRC
+Servicio independiente que valida códigos NRC (Número de Referencia de Curso) y retorna información de materias.
+
+**Características:**
+- **Puerto**: 12346
+- **Protocolo**: TCP/IP con sockets
+- **Persistencia**: `nrcs.csv`
+- **Función**: Validar que las materias/NRCs existan antes de agregar calificaciones
+
+## Estructura de Directorios
 
 ```
 laboratorio_2/
-├── README.md              # Documentación del proyecto
-├── calificaciones.csv     # Archivo CSV compartido (persistencia)
-├── sin_hilos/             # Implementación secuencial (actual)
-│   ├── server.py          # Servidor TCP secuencial
-│   └── client.py          # Cliente interactivo mejorado
-└── con_hilos/             # Implementación futura con hilos (vacío)
-    ├── server.py
-    └── client.py
+├── README.md                  # Documentación del proyecto
+├── calificaciones.csv         # Base de datos de calificaciones (compartida)
+├── nrcs.csv                   # Base de datos de NRCs/materias
+├── nrcs_server.py             # Servidor de validación de NRCs (puerto 12346)
+│
+├── sin_hilos/                 # Implementación secuencial
+│   ├── server.py              # Servidor secuencial (puerto 12345)
+│   └── client.py              # Cliente interactivo
+│
+└── con_hilos/                 # Implementación concurrente
+    ├── server.py              # Servidor con threading (puerto 12345)
+    └── client.py              # Cliente interactivo con validación NRC
 ```
 
-## Descripción de Archivos
+## Instalación de Dependencias
 
-### `sin_hilos/server.py` - Servidor TCP Secuencial
+Este proyecto utiliza únicamente la biblioteca estándar de Python. No requiere instalación de paquetes externos.
 
-Servidor que escucha conexiones en el puerto 12345 y procesa comandos de forma secuencial (un cliente a la vez). Utiliza rutas relativas para acceder al archivo CSV compartido en el directorio padre.
+**Requisitos:**
+- Python 3.6 o superior
+- Módulos estándar: `socket`, `csv`, `json`, `os`, `pathlib`, `threading`
 
-#### Funciones Principales:
-
-- **`inicializar_csv()`**: Crea el archivo CSV con encabezados si no existe en el directorio raíz
-- **`agregar_calificacion(id_est, nombre, materia, calif)`**: Agrega un nuevo registro de calificación
-- **`buscar_por_id(id_est)`**: Busca y retorna los datos de un estudiante por su ID
-- **`actualizar_calificacion(id_est, nueva_calif)`**: Actualiza la calificación de un estudiante existente
-- **`listar_todas()`**: Retorna todas las calificaciones almacenadas como lista de diccionarios
-- **`eliminar_por_id(id_est)`**: Elimina el registro de un estudiante por su ID
-- **`procesar_comando(comando)`**: Parsea y ejecuta comandos recibidos del cliente
-
-#### Características Técnicas:
-
-- Usa `pathlib` para manejar rutas de forma robusta y multiplataforma
-- El archivo CSV se ubica en `laboratorio_2/calificaciones.csv` (directorio padre)
-- Manejo de excepciones en todas las operaciones de archivo
-
-#### Formato de Comandos:
-
-Los comandos se envían como strings delimitados por `|`:
-
-- `AGREGAR|ID|Nombre|Materia|Calificacion`
-- `BUSCAR|ID`
-- `ACTUALIZAR|ID|NuevaCalificacion`
-- `LISTAR`
-- `ELIMINAR|ID`
-
-#### Formato de Respuestas:
-
-Todas las respuestas son objetos JSON con la estructura:
-
-```json
-{
-  "status": "ok|error|not_found",
-  "mensaje": "Descripción del resultado",
-  "data": {}  // Opcional, solo en consultas
-}
+**Verificar instalación de Python:**
+```bash
+python3 --version
 ```
 
-### `sin_hilos/client.py` - Cliente Interactivo Mejorado
+## Instrucciones Paso a Paso para Ejecutar
 
-Cliente con interfaz de menú que permite al usuario interactuar con el servidor de forma intuitiva. Incluye manejo robusto de errores y excepciones.
+### Opción 1: Implementación Secuencial (sin_hilos)
 
-#### Funciones Principales:
+Esta implementación **NO requiere** el servidor NRC y atiende un cliente a la vez.
 
-- **`mostrar_menu()`**: Muestra el menú de opciones disponibles y maneja interrupciones (Ctrl+C)
-- **`enviar_comando(comando)`**: Establece conexión con el servidor, envía comando y retorna respuesta parseada
-- **`main()`**: Función principal que ejecuta el bucle del menú
-
-#### Opciones del Menú:
-
-1. **Agregar calificación**: Solicita ID, nombre, materia y calificación
-2. **Buscar por ID**: Busca y muestra los datos de un estudiante
-3. **Actualizar calificación**: Modifica la calificación de un estudiante existente
-4. **Listar todas**: Muestra todas las calificaciones registradas
-5. **Eliminar por ID**: Elimina el registro de un estudiante
-6. **Salir**: Cierra el cliente
-
-#### Mejoras Implementadas:
-
-- **Manejo de interrupciones**: Captura `KeyboardInterrupt` y `EOFError` para salir limpiamente
-- **Validación de entrada**: Verifica que las opciones sean números válidos
-- **Manejo de errores de conexión**: Usa bloques `try-finally` para cerrar sockets correctamente
-- **Buffer ampliado**: Recibe hasta 4096 bytes para respuestas grandes
-- **Acceso seguro a diccionarios**: Usa `.get()` para evitar errores de clave no encontrada
-
-## Cómo Ejecutar el Proyecto
-
-### Requisitos Previos
-
-- Python 3.x instalado
-- Módulos estándar de Python (socket, csv, json, os, pathlib)
-
-### Pasos para Ejecutar
-
-#### 1. Iniciar el Servidor
-
-Abrir una terminal y ejecutar:
-
+#### Terminal 1 - Servidor de Calificaciones (Secuencial)
 ```bash
 cd laboratorio_2/sin_hilos
-python server.py
+python3 server.py
 ```
 
-Salida esperada:
+**Salida esperada:**
 ```
 Servidor secuencial escuchando en puerto 12345...
 ```
 
-#### 2. Iniciar el Cliente
-
-En una **nueva terminal**, ejecutar:
-
+#### Terminal 2 - Cliente
 ```bash
 cd laboratorio_2/sin_hilos
-python client.py
+python3 client.py
 ```
 
-Aparecerá el menú interactivo:
+**Salida esperada:**
 ```
 --- Menú de Calificaciones ---
 1. Agregar calificación
@@ -145,11 +104,57 @@ Aparecerá el menú interactivo:
 Elija opción:
 ```
 
-#### 3. Interactuar con el Sistema
+---
 
-Seleccionar las opciones del menú e ingresar los datos solicitados.
+### Opción 2: Implementación Concurrente (con_hilos)
 
-**Ejemplo de uso:**
+Esta implementación **REQUIERE** el servidor NRC para validar materias y puede atender múltiples clientes simultáneamente.
+
+#### Terminal 1 - Servidor NRC
+```bash
+cd laboratorio_2
+python3 nrcs_server.py
+```
+
+**Salida esperada:**
+```
+Servidor NRCs escuchando en puerto 12346...
+```
+
+#### Terminal 2 - Servidor de Calificaciones (Concurrente)
+```bash
+cd laboratorio_2/con_hilos
+python3 server.py
+```
+
+**Salida esperada:**
+```
+Servidor concurrente escuchando en puerto 12345...
+```
+
+#### Terminal 3 - Cliente 1
+```bash
+cd laboratorio_2/con_hilos
+python3 client.py
+```
+
+#### Terminal 4 (Opcional) - Cliente 2
+```bash
+cd laboratorio_2/con_hilos
+python3 client.py
+```
+
+**Nota:** Puedes abrir múltiples terminales con clientes para probar la concurrencia.
+
+---
+
+### Detener los Servidores
+
+Presionar `Ctrl+C` en cada terminal de servidor para detenerlos de forma segura.
+
+## Ejemplos de Uso
+
+### Ejemplo 1: Agregar Calificación (sin_hilos - Sin validación NRC)
 
 ```
 Elija opción: 1
@@ -159,58 +164,195 @@ Materia: Matemáticas
 Calificación: 95
 ```
 
-### Detener el Servidor
-
-Presionar `Ctrl+C` en la terminal del servidor para detenerlo de forma segura.
-
-## Persistencia de Datos
-
-El archivo `calificaciones.csv` se crea automáticamente en el directorio `con_hilos/` con la siguiente estructura:
-
-```csv
-ID_Estudiante,Nombre,Materia,Calificacion
-001,Juan Pérez,Matemáticas,95
-002,María López,Física,88
+**Respuesta del servidor:**
+```json
+{"status": "ok", "mensaje": "Calificación agregada para Juan Pérez"}
 ```
 
-## Características Técnicas
+---
 
-### Implementación Actual (No Recurrente)
+### Ejemplo 2: Agregar Calificación con NRC Válido (con_hilos)
 
-- **Modelo**: Servidor secuencial que atiende un cliente a la vez
-- **Concurrencia**: No soporta múltiples clientes simultáneos
-- **Conexión**: El cliente se conecta, envía un comando, recibe respuesta y se desconecta
-- **Bloqueo**: El servidor se bloquea esperando cada cliente
+**Prerequisito:** El servidor NRC debe estar corriendo y el NRC debe existir en `nrcs.csv`.
 
-### Ventajas
+**NRCs disponibles por defecto:**
+- `MAT101` - Matemáticas
+- `FIS201` - Física
 
-- Simplicidad en la implementación
-- No requiere manejo de concurrencia
-- Fácil de depurar y entender
+```
+Elija opción: 1
+ID: 002
+Nombre: María López
+Materia: MAT101
+Calificación: 88
+```
 
-### Limitaciones
+**Respuesta del servidor:**
+```json
+{"status": "ok", "mensaje": "Calificación agregada para María López"}
+```
 
-- Solo puede atender un cliente a la vez
-- Los demás clientes deben esperar en cola
-- No escalable para múltiples usuarios simultáneos
+---
 
-## Próximos Pasos
+### Ejemplo 3: Agregar Calificación con NRC Inválido (con_hilos)
 
-La carpeta `sin_hilos/` está preparada para implementar una versión con hilos que permita:
+```
+Elija opción: 1
+ID: 003
+Nombre: Carlos Ruiz
+Materia: INVALID123
+Calificación: 90
+```
 
-- Atención simultánea de múltiples clientes
-- Mejor rendimiento y escalabilidad
-- Manejo de concurrencia en operaciones de archivo
+**Respuesta del servidor:**
+```json
+{"status": "error", "mensaje": "Materia/NRC no válida"}
+```
+
+---
+
+### Ejemplo 4: Buscar Estudiante por ID
+
+```
+Elija opción: 2
+ID: 001
+```
+
+**Respuesta:**
+```
+Nombre: Juan Pérez, Materia: Matemáticas, Calificación: 95
+```
+
+---
+
+### Ejemplo 5: Listar Todas las Calificaciones
+
+```
+Elija opción: 4
+```
+
+**Respuesta:**
+```
+{'ID_Estudiante': '001', 'Nombre': 'Juan Pérez', 'Materia': 'Matemáticas', 'Calificacion': '95'}
+{'ID_Estudiante': '002', 'Nombre': 'María López', 'Materia': 'MAT101', 'Calificacion': '88'}
+```
+
+## Cómo Probar Concurrencia
+
+### Prueba 1: Servidor Secuencial (sin_hilos) - Sin Concurrencia
+
+1. Iniciar el servidor secuencial en Terminal 1
+2. Abrir dos clientes en Terminal 2 y Terminal 3
+3. En Terminal 2, seleccionar opción 4 (Listar todas) - el cliente quedará esperando respuesta
+4. Mientras Terminal 2 espera, intentar usar Terminal 3
+5. **Resultado esperado:** Terminal 3 no podrá interactuar hasta que Terminal 2 termine
+
+**Observación:** El servidor secuencial bloquea y solo atiende un cliente a la vez.
+
+---
+
+### Prueba 2: Servidor Concurrente (con_hilos) - Con Concurrencia
+
+1. Iniciar el servidor NRC en Terminal 1
+2. Iniciar el servidor concurrente en Terminal 2
+3. Abrir tres clientes en Terminal 3, 4 y 5
+4. En los tres clientes simultáneamente:
+   - Cliente 1: Agregar calificación con NRC `MAT101`
+   - Cliente 2: Listar todas las calificaciones
+   - Cliente 3: Buscar por ID
+
+5. **Resultado esperado:** Los tres clientes son atendidos simultáneamente sin bloqueos
+
+**Observación en logs del servidor:**
+```
+Cliente conectado desde ('127.0.0.1', 54321) en hilo Thread-1
+Cliente conectado desde ('127.0.0.1', 54322) en hilo Thread-2
+Cliente conectado desde ('127.0.0.1', 54323) en hilo Thread-3
+```
+
+---
+
+### Prueba 3: Validación de NRC
+
+1. Iniciar servidor NRC y servidor concurrente
+2. Intentar agregar calificación con NRC inválido: `INVALID999`
+3. **Resultado esperado:** Error "Materia/NRC no válida"
+4. Intentar agregar calificación con NRC válido: `MAT101`
+5. **Resultado esperado:** Éxito "Calificación agregada"
+
+## Limitaciones y Notas
+
+### Limitaciones de la Implementación sin_hilos
+
+- **Sin concurrencia**: Solo atiende un cliente a la vez
+- **Sin validación NRC**: Acepta cualquier materia sin validar
+- **Bloqueo**: Los clientes deben esperar en cola
+- **No escalable**: No adecuado para múltiples usuarios simultáneos
+
+### Limitaciones de la Implementación con_hilos
+
+- **Sin locks en CSV**: Posibles condiciones de carrera al escribir simultáneamente
+- **Dependencia del servidor NRC**: Si el servidor NRC no está disponible, no se pueden agregar calificaciones
+- **Timeout de 2 segundos**: La consulta al servidor NRC tiene timeout de 2 segundos
+
+### Limitaciones Generales
+
+- **Persistencia en CSV**: No es una base de datos robusta, no tiene transacciones
+- **Sin autenticación**: No hay control de acceso ni seguridad
+- **Sin encriptación**: Los datos viajan en texto plano
+- **Localhost únicamente**: Solo funciona en la misma máquina
+
+---
+
+## Formato de Comunicación
+
+### Comandos del Cliente al Servidor de Calificaciones
+
+Formato: `OPERACION|param1|param2|...`
+
+- `AGREGAR|ID|Nombre|Materia|Calificacion`
+- `BUSCAR|ID`
+- `ACTUALIZAR|ID|NuevaCalificacion`
+- `LISTAR`
+- `ELIMINAR|ID`
+
+### Comandos al Servidor NRC
+
+- `BUSCAR NRC|codigo_nrc`
+- `LISTAR`
+
+### Formato de Respuestas (JSON)
+
+```json
+{
+  "status": "ok|error|not_found",
+  "mensaje": "Descripción del resultado",
+  "data": {}  // Opcional, solo en consultas exitosas
+}
+```
+
+---
+
+## Archivos de Persistencia
+
+### calificaciones.csv
+```csv
+ID_Estudiante,Nombre,Materia,Calificacion
+123,Cristian Robalino,Distribuidas,20
+001,Juan Pérez,MAT101,95
+```
+
+### nrcs.csv
+```csv
+NRC,Materia
+MAT101,Matematicas
+FIS201,Fisica
+```
+
+---
 
 ## Autores
 
-- Chalacan
-- Guallichico
-- Robalino
-
-## Notas Adicionales
-
-- El servidor debe estar corriendo antes de ejecutar el cliente
-- Cada operación del cliente abre y cierra una nueva conexión
-- Los datos persisten en el archivo CSV entre ejecuciones
-- El servidor imprime logs de conexiones y desconexiones en la consola
+- Dennison Chalacan
+- Josue Guallichico
+- Cristian Robalino
