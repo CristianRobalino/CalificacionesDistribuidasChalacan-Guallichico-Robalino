@@ -2,7 +2,10 @@ import socket
 import csv
 import json
 import os
-ARCHIVO_CSV = 'calificaciones.csv'
+import pathlib
+
+# Asegurar ruta del CSV relativa al directorio del script
+ARCHIVO_CSV = str(pathlib.Path(__file__).parent.joinpath('..', 'calificaciones.csv').resolve())
 def inicializar_csv():
     if not os.path.exists(ARCHIVO_CSV):
         with open(ARCHIVO_CSV, 'w', newline='') as f:
@@ -24,7 +27,7 @@ def buscar_por_id(id_est):
             reader = csv.DictReader(f)
             for row in reader:
                 if row['ID_Estudiante'] == id_est:
-                    return {status: ok, data: row}
+                    return {"status": "ok", "data": row}
             return {"status": "not_found", "mensaje": "ID no encontrado"}
     except Exception as e:
         return {"status": "error", "mensaje": str(e)}
@@ -54,7 +57,7 @@ def listar_todas():
     try:
         with open(ARCHIVO_CSV, 'r') as f:
             reader = csv.DictReader(f)
-            data = list(csv.reader)
+            data = list(reader)
         return {"status": "ok", "data": data}
     except Exception as e:
         return {"status": "error", "mensaje": str(e)}
