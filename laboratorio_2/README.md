@@ -161,7 +161,7 @@ Elija opción: 1
 ID: 001
 Nombre: Juan Pérez
 Materia: Matemáticas
-Calificación: 95
+Calificación: 15
 ```
 
 **Respuesta del servidor:**
@@ -169,7 +169,7 @@ Calificación: 95
 {"status": "ok", "mensaje": "Calificación agregada para Juan Pérez"}
 ```
 
-**En Terminal:**
+**En Terminal (Gráfico):**
 ![Texto Alternativo Descriptivo](./img/imagen1.png)
 
 ---
@@ -187,14 +187,15 @@ Elija opción: 1
 ID: 002
 Nombre: María López
 Materia: MAT101
-Calificación: 88
+Calificación: 12
 ```
 
 **Respuesta del servidor:**
 ```json
 {"status": "ok", "mensaje": "Calificación agregada para María López"}
 ```
-
+**En Terminal (Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen2.png)
 ---
 
 ### Ejemplo 3: Agregar Calificación con NRC Inválido (con_hilos)

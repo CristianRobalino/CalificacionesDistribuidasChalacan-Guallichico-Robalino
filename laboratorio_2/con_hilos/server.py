@@ -5,7 +5,6 @@ import os
 import pathlib
 import threading
 
-# Ruta del CSV relativa al directorio del script (dos niveles arriba está el CSV)
 ARCHIVO_CSV = str(pathlib.Path(__file__).parent.joinpath('..', 'calificaciones.csv').resolve())
 
 
@@ -18,8 +17,11 @@ def inicializar_csv():
 
 def consultar_nrc(nrc):
     """Consulta al servicio de NRCs en localhost:12346.
-    Retorna el objeto JSON parseado o un dict con status:error en caso de fallo.
+    Primero intenta buscar por NRC. Si no se encuentra, solicita LISTAR y
+    busca por nombre de materia (case-insensitive). Retorna el objeto JSON
+    parseado o un dict con status:error en caso de fallo.
     """
+
     try:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(2.0)
@@ -29,16 +31,55 @@ def consultar_nrc(nrc):
         respuesta = s.recv(4096).decode('utf-8')
         s.close()
         try:
-            return json.loads(respuesta)
+            parsed = json.loads(respuesta)
         except Exception:
             return {"status": "error", "mensaje": "Respuesta inválida del servicio NRC"}
+
+        if parsed.get('status') == 'ok':
+            return parsed
+
+    except Exception as e:
+        return {"status": "error", "mensaje": f"Fallo conexión NRC: {e}"}
+
+    try:
+        s2 = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s2.settimeout(2.0)
+        s2.connect(('localhost', 12346))
+        s2.send(b'LISTAR')
+        respuesta = s2.recv(8192).decode('utf-8')
+        s2.close()
+        try:
+            parsed = json.loads(respuesta)
+        except Exception:
+            return {"status": "error", "mensaje": "Respuesta inválida del servicio NRC (LISTAR)"}
+
+        if parsed.get('status') != 'ok':
+            return {"status": "not_found", "mensaje": "NRC o materia no encontrado"}
+
+
+        target = nrc.strip().lower()
+        candidates = []
+        for row in parsed.get('data', []):
+            nombre = row.get('Materia', '').strip().lower()
+            if nombre == target:
+                candidates.append(row)
+
+        if len(candidates) == 1:
+            return {"status": "ok", "data": candidates[0]}
+        elif len(candidates) > 1:
+            return {"status": "error", "mensaje": "Materia ambigua, especifique NRC"}
+        else:
+            return {"status": "not_found", "mensaje": "NRC o materia no encontrado"}
+
     except Exception as e:
         return {"status": "error", "mensaje": f"Fallo conexión NRC: {e}"}
 
 
 def agregar_calificacion(id_est, nombre, materia, calif):
-    # Validar NRC/Materia usando servicio externo
+
     res_nrc = consultar_nrc(materia)
+    if res_nrc.get('status') == 'error':
+        return {"status": "error", "mensaje": res_nrc.get('mensaje', 'Fallo en validación NRC')}
     if res_nrc.get('status') != 'ok':
         return {"status": "error", "mensaje": "Materia/NRC no válida"}
     try:
@@ -70,8 +111,6 @@ def actualizar_calificacion(id_est, nueva_calif):
             reader = csv.DictReader(f)
             for row in reader:
                 if row['ID_Estudiante'] == id_est:
-                    # Si la "nueva_calif" viene como materia/NRC en algunos casos no aplica;
-                    # aquí asumimos que actualizar_calificacion sólo recibe la nueva calificación.
                     row['Calificacion'] = nueva_calif
                     found = True
                 rows.append(row)
