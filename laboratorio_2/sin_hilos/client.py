@@ -51,6 +51,7 @@ def main():
                 print("\nEntrada interrumpida. Volviendo al menú...")
                 continue
             res = enviar_comando(f"AGREGAR|{id_est}|{nombre}|{materia}|{calif}")
+            print(res.get("mensaje", "Sin mensaje"))
             
         elif opcion == 2:
             id_est = input("ID: ")
@@ -63,6 +64,7 @@ def main():
             id_est = input("ID: ")
             nueva_calif = input("Nueva calificación: ")
             res = enviar_comando(f"ACTUALIZAR|{id_est}|{nueva_calif}")
+            print(res.get("mensaje", "Sin mensaje"))
             
         elif opcion == 4:
             res = enviar_comando("LISTAR")
@@ -74,7 +76,7 @@ def main():
         elif opcion == 5:
             id_est = input("ID: ")
             res = enviar_comando(f"ELIMINAR|{id_est}")
-            
+            print(res.get("mensaje", "Sin mensaje"))
         elif opcion == 6:
             print("Saliendo...")
             break

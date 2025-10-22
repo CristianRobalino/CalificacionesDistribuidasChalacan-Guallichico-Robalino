@@ -169,6 +169,9 @@ Calificación: 95
 {"status": "ok", "mensaje": "Calificación agregada para Juan Pérez"}
 ```
 
+**En Terminal:**
+![Texto Alternativo Descriptivo](./img/imagen1.png)
+
 ---
 
 ### Ejemplo 2: Agregar Calificación con NRC Válido (con_hilos)
