@@ -1,4 +1,9 @@
 # Sistema de Gestión de Calificaciones - Laboratorio 2
+## Autores
+
+- Dennison Chalacan
+- Josue Guallichico
+- Cristian Robalino
 
 ## Descripción General del Proyecto
 
@@ -205,14 +210,15 @@ Elija opción: 1
 ID: 003
 Nombre: Carlos Ruiz
 Materia: INVALID123
-Calificación: 90
+Calificación: 13
 ```
 
 **Respuesta del servidor:**
 ```json
 {"status": "error", "mensaje": "Materia/NRC no válida"}
 ```
-
+**En Terminal (Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen3.png)
 ---
 
 ### Ejemplo 4: Buscar Estudiante por ID
@@ -224,9 +230,10 @@ ID: 001
 
 **Respuesta:**
 ```
-Nombre: Juan Pérez, Materia: Matemáticas, Calificación: 95
+Nombre: Juan Pérez, Materia: Matemáticas, Calificación: 15
 ```
-
+**En Terminal (Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen4.png)
 ---
 
 ### Ejemplo 5: Listar Todas las Calificaciones
@@ -237,10 +244,10 @@ Elija opción: 4
 
 **Respuesta:**
 ```
-{'ID_Estudiante': '001', 'Nombre': 'Juan Pérez', 'Materia': 'Matemáticas', 'Calificacion': '95'}
-{'ID_Estudiante': '002', 'Nombre': 'María López', 'Materia': 'MAT101', 'Calificacion': '88'}
+{'ID_Estudiante': '001', 'Nombre': 'Juan Perez', 'Materia': 'Matemáticas', 'Calificacion': '15'}
+{'ID_Estudiante': '002', 'Nombre': 'Maria Lopez', 'Materia': 'MAT101', 'Calificacion': '13'}
 ```
-
+![Texto Alternativo Descriptivo](./img/imagen5.png)
 ## Cómo Probar Concurrencia
 
 ### Prueba 1: Servidor Secuencial (sin_hilos) - Sin Concurrencia
@@ -354,9 +361,3 @@ FIS201,Fisica
 ```
 
 ---
-
-## Autores
-
-- Dennison Chalacan
-- Josue Guallichico
-- Cristian Robalino
