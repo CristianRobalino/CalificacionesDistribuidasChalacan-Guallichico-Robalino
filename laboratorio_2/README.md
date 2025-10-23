@@ -260,6 +260,12 @@ Elija opción: 4
 
 **Observación:** El servidor secuencial bloquea y solo atiende un cliente a la vez.
 
+
+**Demostracion Servidor aceptando una sola peticion(Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen6.png)
+
+
+
 ---
 
 ### Prueba 2: Servidor Concurrente (con_hilos) - Con Concurrencia
@@ -281,6 +287,8 @@ Cliente conectado desde ('127.0.0.1', 54322) en hilo Thread-2
 Cliente conectado desde ('127.0.0.1', 54323) en hilo Thread-3
 ```
 
+**Demostracion Servidor con hilos aceptando varias peticiones(Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen7.png)
 ---
 
 ### Prueba 3: Validación de NRC
@@ -288,8 +296,12 @@ Cliente conectado desde ('127.0.0.1', 54323) en hilo Thread-3
 1. Iniciar servidor NRC y servidor concurrente
 2. Intentar agregar calificación con NRC inválido: `INVALID999`
 3. **Resultado esperado:** Error "Materia/NRC no válida"
+**Demostracion de NRC NO encontrado(Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen8.png)
 4. Intentar agregar calificación con NRC válido: `MAT101`
 5. **Resultado esperado:** Éxito "Calificación agregada"
+**Demostracion de NRC válido(Gráfico):**
+![Texto Alternativo Descriptivo](./img/imagen9.png)
 
 ## Limitaciones y Notas
 
